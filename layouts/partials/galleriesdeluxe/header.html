@@ -2,22 +2,12 @@
   <h1>{{ .Title }}</h1>
   <div>
     <ul>
-      {{ if not .IsHome }}
-        <li>
-          <a href="{{ site.Home.RelPermalink }}">{{ site.Home.LinkTitle }}</a>
-        </li>
-      {{ end }}
       {{ with site.GetPage "galleries" }}
         {{ range .RegularPagesRecursive }}
           <li>
             <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
           </li>
         {{ end }}
-      {{ end }}
-      {{ with site.GetPage "about" }}
-        <li>
-          <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
-        </li>
       {{ end }}
     </ul>
   </div>
