@@ -58,9 +58,10 @@ jobs:
       - name: Sync galleries from Google Drive
         env:
           GOOGLE_CREDENTIALS_FILE: ${{ runner.temp }}/gcloud.json
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
         run: |
-          echo '${{ secrets.GOOGLE_CREDENTIALS }}' > "$GOOGLE_CREDENTIALS_FILE"
+          printenv GOOGLE_CREDENTIALS > "$GOOGLE_CREDENTIALS_FILE"
           python scripts/sync_drive.py
           rm -f "$GOOGLE_CREDENTIALS_FILE"
 
