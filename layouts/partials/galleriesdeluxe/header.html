@@ -1,37 +1,22 @@
 <header>
   <h1>{{ .Title }}</h1>
   <div>
-    {{ if .IsHome }}
-      <ul>
-        {{ range site.Taxonomies.categories }}
-          <li>
-            <a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a>
-          </li>
-        {{ end }}
-        {{ with site.GetPage "about" }}
-          <li>
-            <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
-          </li>
-        {{ end }}
-      </ul>
-    {{ else }}
-      {{ $categories := .GetTerms "categories" }}
-      <ul>
+    <ul>
+      {{ if not .IsHome }}
         <li>
           <a href="{{ site.Home.RelPermalink }}">{{ site.Home.LinkTitle }}</a>
         </li>
-        {{ with .Parent }}
-          {{ if and (not .IsHome) (not .IsSection) }}
-            <li>
-              <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
-            </li>
-          {{ end }}
-        {{ end }}
-
-        {{ range $categories }}
-          <li><a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a></li>
-        {{ end }}
-      </ul>
-    {{ end }}
+      {{ end }}
+      {{ range site.Taxonomies.categories }}
+        <li>
+          <a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a>
+        </li>
+      {{ end }}
+      {{ with site.GetPage "about" }}
+        <li>
+          <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+        </li>
+      {{ end }}
+    </ul>
   </div>
 </header>
