@@ -42,7 +42,12 @@ def list_images(service, folder_id):
         fields="files(id,name,description,mimeType,createdTime)",
         orderBy="name",
     ).execute()
-    return [f for f in resp.get("files", []) if f["mimeType"] in IMAGE_MIMETYPES]
+    files = resp.get("files", [])
+    images = [f for f in files if f["mimeType"] in IMAGE_MIMETYPES]
+    skipped = [f for f in files if f["mimeType"] not in IMAGE_MIMETYPES]
+    for f in skipped:
+        print(f"    Skipped: {f['name']} (mimeType: {f['mimeType']})")
+    return images
 
 
 def download_file(service, file_id, dest_path):
@@ -105,9 +110,13 @@ def sync():
         # Download images
         resources = []
         for img in images:
-            dest = gallery_dir / img["name"]
+            # Sanitize filename: lowercase, replace spaces with hyphens
+            safe_name = img["name"].lower().replace(" ", "-")
+            dest = gallery_dir / safe_name
             download_file(service, img["id"], dest)
-            res = {"src": img["name"]}
+            size_kb = dest.stat().st_size / 1024
+            print(f"    Downloaded: {img['name']} -> {safe_name} ({size_kb:.0f} KB)")
+            res = {"src": safe_name}
             if img.get("description"):
                 res["title"] = img["description"]
             resources.append(res)
