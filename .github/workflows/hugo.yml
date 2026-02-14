@@ -5,8 +5,8 @@ on:
     branches:
       - main
   schedule:
-    - cron: "*/15 19-22 * * *"
-    - cron: "*/15 6-9 * * *"
+    - cron: "*/5 19-22 * * *"
+    - cron: "*/5 6-9 * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,46 @@ defaults:
     shell: bash
 
 jobs:
+  check:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            requirements.txt
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore last sync timestamp
+        uses: actions/cache@v4
+        with:
+          path: last_sync.txt
+          key: drive-sync-timestamp
+
+      - name: Check for Drive changes
+        id: check
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_FILE }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: |
+          python scripts/check_drive_changes.py && echo "has_changes=true" >> "$GITHUB_OUTPUT" || echo "has_changes=false" >> "$GITHUB_OUTPUT"
+
   build:
+    if: |
+      always() &&
+      (needs.check.result == 'skipped' || needs.check.outputs.has_changes == 'true')
+    needs: check
     runs-on: ubuntu-latest
     env:
       HUGO_VERSION: 0.155.3
@@ -60,6 +99,18 @@ jobs:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_FILE }}
           GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
         run: python scripts/sync_drive.py
+
+      - name: Save sync timestamp
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_FILE }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: python scripts/check_drive_changes.py save
+
+      - name: Cache sync timestamp
+        uses: actions/cache/save@v4
+        with:
+          path: last_sync.txt
+          key: drive-sync-timestamp
 
       - name: Setup Pages
         id: pages
