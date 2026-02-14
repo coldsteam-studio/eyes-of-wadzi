@@ -1,2 +1,6 @@
 github.com/bep/galleriesdeluxe v0.4.1 h1:2ku7CbgUpIe51Tjo5DGJ3ZobaO4i5vndLo8wEHWxL6U=
 github.com/bep/galleriesdeluxe v0.4.1/go.mod h1:2gkub2fjkq0Ax8+guqb8yz3qWlMbqXvk9giSLaYZIeA=
+github.com/bep/gallerydeluxe v0.12.1 h1:ds0fczYAOYBQoAHolRVm8tyBHBShstc86FysDWqbY3M=
+github.com/bep/gallerydeluxe v0.12.1/go.mod h1:sUfRcjREo6DwxPo0sMp0TAxNZiGreOY6DY2dWGpSeR8=
+github.com/bep/hugo-mod-misc/common-partials v0.1.0 h1:SiGnrf9MW1aFczXpXPTDpsGr3SvimIaBXMpZucPxT+g=
+github.com/bep/hugo-mod-misc/common-partials v0.1.0/go.mod h1:lw2586uqPfye9yTYgSyvZwU3dfpZcjDXmIOJeR4D6O0=
