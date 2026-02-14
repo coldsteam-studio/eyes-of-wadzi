@@ -2,6 +2,7 @@
 """Download images from Google Drive and generate Hugo gallery content."""
 
 import io
+import json
 import os
 import shutil
 from pathlib import Path
@@ -16,8 +17,13 @@ IMAGE_MIMETYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/
 
 
 def get_service():
-    creds_file = os.environ["GOOGLE_CREDENTIALS_FILE"]
-    creds = service_account.Credentials.from_service_account_file(creds_file, scopes=SCOPES)
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS") or ""
+    if creds_json:
+        info = json.loads(creds_json)
+        creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
+    else:
+        creds_file = os.environ["GOOGLE_CREDENTIALS_FILE"]
+        creds = service_account.Credentials.from_service_account_file(creds_file, scopes=SCOPES)
     return build("drive", "v3", credentials=creds)
 
 

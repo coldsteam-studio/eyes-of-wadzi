@@ -57,13 +57,9 @@ jobs:
 
       - name: Sync galleries from Google Drive
         env:
-          GOOGLE_CREDENTIALS_FILE: ${{ runner.temp }}/gcloud.json
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
-        run: |
-          printenv GOOGLE_CREDENTIALS > "$GOOGLE_CREDENTIALS_FILE"
-          python scripts/sync_drive.py
-          rm -f "$GOOGLE_CREDENTIALS_FILE"
+        run: python scripts/sync_drive.py
 
       - name: Setup Pages
         id: pages
