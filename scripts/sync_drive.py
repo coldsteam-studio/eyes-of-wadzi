@@ -7,13 +7,18 @@ import os
 import shutil
 from pathlib import Path
 
+from PIL import Image
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 CONTENT_DIR = Path(__file__).resolve().parent.parent / "content" / "galleries"
 IMAGE_MIMETYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/tiff"}
+HEIC_MIMETYPES = {"image/heic", "image/heif"}
 
 
 def get_service():
@@ -43,8 +48,9 @@ def list_images(service, folder_id):
         orderBy="name",
     ).execute()
     files = resp.get("files", [])
-    images = [f for f in files if f["mimeType"] in IMAGE_MIMETYPES]
-    skipped = [f for f in files if f["mimeType"] not in IMAGE_MIMETYPES]
+    all_image_types = IMAGE_MIMETYPES | HEIC_MIMETYPES
+    images = [f for f in files if f["mimeType"] in all_image_types]
+    skipped = [f for f in files if f["mimeType"] not in all_image_types]
     for f in skipped:
         print(f"    Skipped: {f['name']} (mimeType: {f['mimeType']})")
     return images
@@ -114,6 +120,18 @@ def sync():
             safe_name = img["name"].lower().replace(" ", "-")
             dest = gallery_dir / safe_name
             download_file(service, img["id"], dest)
+
+            # Convert HEIC/HEIF to JPEG
+            if img["mimeType"] in HEIC_MIMETYPES:
+                jpeg_name = Path(safe_name).stem + ".jpg"
+                jpeg_dest = gallery_dir / jpeg_name
+                with Image.open(dest) as im:
+                    im.convert("RGB").save(jpeg_dest, "JPEG", quality=92)
+                dest.unlink()
+                safe_name = jpeg_name
+                dest = jpeg_dest
+                print(f"    Converted: {img['name']} -> {safe_name} (HEIC to JPEG)")
+
             size_kb = dest.stat().st_size / 1024
             print(f"    Downloaded: {img['name']} -> {safe_name} ({size_kb:.0f} KB)")
             res = {"src": safe_name}
